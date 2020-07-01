@@ -1,0 +1,11 @@
+Partlist exported from C:/Users/Lasitha/Documents/EAGLE/projects/Dul_Water_Project/water_project.sch at 2020-03-14 11:52 AM
+
+Qty Value         Device        Package       Parts                                                    Description                                                                  MF MPN OC_FARNELL OC_NEWARK POPULARITY
+6                 3,17/1,3      3,17/1,3      5V, GND, POWERMOTER_U, POWERMOTOR_B, RELAY_5V, RELAY_GND THROUGH-HOLE PAD                                                                                         3         
+2                 3RP/1610N     3RP/1610N     BREAKINGTIME, RUNNINTIME                                 16mm Potentiometer one level                                                                             8         
+1                 ARDUINONANO   ARDUINONANO   A1                                                                                                                                                                          
+4                 LEDSFH480     SFH480        BOTTOMOTORON, RUNNING, STANBY, UPEERMOTERON              LED                                                                                                      2         
+4                 PINHD-1X2     1X02          JP1, JP2, SONABOTTOMTANK, SONAUPPERTANK                  PIN HEADER                                                                                               98        
+1                 R-TRIMM3339P  RTRIM3339P    LCDBRIGHTESS                                             Trimm resistor                                                                                                     
+4                 R-US_0207/7   0207/7        R1, R2, R3, R4                                           RESISTOR, American symbol                                                                                          
+1   TUXGR_16X2_R2 TUXGR_16X2_R2 TUXGR_16X2_R2 DIS1                                                     Tuxgraphics LCD display 16x2 characters reflective, without background light        unknown    unknown   5         
