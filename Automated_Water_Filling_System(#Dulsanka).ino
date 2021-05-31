@@ -1,4 +1,3 @@
-
 #include <LiquidCrystal.h> // includes the LiquidCrystal Library
 
 LiquidCrystal lcd(11, 12, 4, 5, 6, 7); // Creates an LCD object. Parameters: (rs, enable, d4, d5, d6, d7)
@@ -25,6 +24,7 @@ const int Bl = 40;
 const int Tu = 40;
 const int Tl = 180;
 
+int emergancy = 0;
 int flag = 0;
 int modeB = 0;
 volatile unsigned long oldtime = 0;
@@ -46,27 +46,30 @@ int Ttemp = 0;
 int Btemp = 0;
 
 void map_runing_time() {
-  runing_time = map(analogRead(OnTimePin), 0, 1023, 0, 9)*30;
+  runing_time = map(analogRead(OnTimePin), 0, 1023, 0, 9) * 30;
   if (runing_time != old_rvalue) {
     old_rvalue = runing_time;
-    lcd.setCursor(4, 1);
-    lcd.print("   ");
-    lcd.setCursor(4, 1);
-    lcd.print(runing_time);
+    if (!emergancy) {
+      lcd.setCursor(4, 1);
+      lcd.print("   ");
+      lcd.setCursor(4, 1);
+      lcd.print(runing_time);
+    }
   } else {
 
   }
 }
 
 void map_breaking_time() {
-  breaking_time = map(analogRead(OffTimePin), 0, 1023, 0, 9)*5;
+  breaking_time = map(analogRead(OffTimePin), 0, 1023, 0, 9) * 5;
   if (breaking_time != old_bvalue ) {
     old_bvalue =  breaking_time;
-    lcd.setCursor(12, 1);
-    lcd.print("   ");
-    lcd.setCursor(12, 1);
-    lcd.print(breaking_time);
-
+    if (!emergancy) {
+      lcd.setCursor(12, 1);
+      lcd.print("   ");
+      lcd.setCursor(12, 1);
+      lcd.print(breaking_time);
+    }
   } else {
 
   }
@@ -123,8 +126,8 @@ void setup() {
   pinMode(TechoPin, INPUT);
   pinMode(BtrigPin, OUTPUT);
   pinMode(BechoPin, INPUT);
-motorToff();
-motorBoff();
+  motorToff();
+  motorBoff();
   pinMode(motorpowerT, OUTPUT);
   pinMode(motorpowerB, OUTPUT);
   pinMode(StanbyledPin, OUTPUT);
@@ -132,30 +135,69 @@ motorBoff();
 
   pinMode(OnTimePin, INPUT);
   pinMode(OffTimePin, INPUT);
+  map_runing_time();
+  map_breaking_time();
 
-  lcd.setCursor(0, 0); // Sets the location at which subsequent text written to the LCD will be displayed
-  lcd.print("T1: ");
-  lcd.setCursor(8, 0); // Sets the location at which subsequent text written to the LCD will be displayed
-  lcd.print("T2: ");
+  if (runing_time  > 235 and breaking_time > 35) {
+    emergancy = 1;
+    runing_time = 10;
+    breaking_time = 1;
+  } else {
+    emergancy = 0;
+  }
+
+  if (emergancy) {
+    digitalWrite(RuningledPin, HIGH );
+    digitalWrite(StanbyledPin, HIGH );
+    lcd.clear();
+
+    lcd.setCursor(0, 0);
+
+    lcd.print(" Emergancy Mode ");
+
+    lcd.setCursor(4, 1);
+    lcd.print("   ");
+    lcd.setCursor(4, 1);
+    lcd.print(runing_time);
+    lcd.setCursor(12, 1);
+    lcd.print("   ");
+    lcd.setCursor(12, 1);
+    lcd.print(breaking_time);
+
+    delay(500);
+  } else {
+    lcd.setCursor(0, 0); // Sets the location at which subsequent text written to the LCD will be displayed
+    lcd.print("T1: ");
+    lcd.setCursor(8, 0); // Sets the location at which subsequent text written to the LCD will be displayed
+    lcd.print("T2: ");
+
+
+  }
   lcd.setCursor(0, 1); // Sets the location at which subsequent text written to the LCD will be displayed
   lcd.print("RT: ");
   lcd.setCursor(8, 1); // Sets the location at which subsequent text written to the LCD will be displayed
   lcd.print("BT: ");
+
+
 }
 
 void TaskB() {
-  map_runing_time();
-  map_breaking_time();
-
-  if (BdistanceCm <= Bu and modeB == 1) {
-    modeB = 0;
-    if (motorstateB != 0) {
-      motorBoff();
+  if (!emergancy) {
+    map_runing_time();
+    map_breaking_time();
+    if (BdistanceCm <= Bu and modeB == 1) {
+      modeB = 0;
+      if (motorstateB != 0) {
+        motorBoff();
+      }
+    } else if (BdistanceCm >= Bl and modeB == 0) {
+      modeB = 1;
     }
-  } else if (BdistanceCm >= Bl and modeB == 0) {
-    modeB = 1;
   }
-  if (modeB == 1 ) {
+
+
+
+  if (modeB == 1 or emergancy == 1 ) {
 
     if (oldtime + runing_time * 1000 < millis() and flag == 0) {
       flag = 1;
@@ -188,39 +230,46 @@ void TaskT() {
 
 void loop() {
 
-  gettoptanklevel();
-  
-  int Tpresentage = float((TdistanceCm - TankTu) * 100) / float((TankTl - TankTu));
-Serial.println(TdistanceCm);
-  if ( Ttemp != Tpresentage) {
-    Ttemp = Tpresentage;
-    lcd.setCursor(11, 0);
-    lcd.print("     ");
-    lcd.setCursor(11, 0);
-    lcd.print(Tpresentage);
-    lcd.print("%");
-  }
-  delay(100);
 
-  getbottomtanklevel();
-  int Bpresentage = float((BdistanceCm - TankBu) * 100) / float((TankBl - TankBu));
-  
-  if ( Btemp != Bpresentage) {
-    Btemp = Bpresentage;
-    lcd.setCursor(3, 0);
-    lcd.print("     ");
-    lcd.setCursor(3, 0);
-    lcd.print(Bpresentage);
-    lcd.print("%");
-  }
-  delay(100);
 
-  if (modeB == 1) {
-    digitalWrite(RuningledPin, HIGH );
-    digitalWrite(StanbyledPin, LOW );
+
+  if (!emergancy) {
+    gettoptanklevel();
+    int Tpresentage = float((TdistanceCm - TankTu) * 100) / float((TankTl - TankTu));
+    Serial.println(TdistanceCm);
+    if ( Ttemp != Tpresentage) {
+      Ttemp = Tpresentage;
+      lcd.setCursor(11, 0);
+      lcd.print("     ");
+      lcd.setCursor(11, 0);
+      lcd.print(Tpresentage);
+      lcd.print("%");
+    }
+    delay(100);
+
+    getbottomtanklevel();
+    int Bpresentage = float((BdistanceCm - TankBu) * 100) / float((TankBl - TankBu));
+
+    if ( Btemp != Bpresentage) {
+      Btemp = Bpresentage;
+      lcd.setCursor(3, 0);
+      lcd.print("     ");
+      lcd.setCursor(3, 0);
+      lcd.print(Bpresentage);
+      lcd.print("%");
+    }
+    delay(100);
+
+    if (modeB == 1) {
+      digitalWrite(RuningledPin, HIGH );
+      digitalWrite(StanbyledPin, LOW );
+    } else {
+      digitalWrite(RuningledPin, LOW);
+      digitalWrite(StanbyledPin, HIGH);
+    }
+
   } else {
-    digitalWrite(RuningledPin, LOW);
-    digitalWrite(StanbyledPin, HIGH);
+    delay(200);
   }
 
   //TaskT();
