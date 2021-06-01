@@ -24,7 +24,7 @@ const int Bl = 40;
 const int Tu = 40;
 const int Tl = 180;
 
-int emergancy = 0;
+int emergency = 0;
 int flag = 0;
 int modeB = 0;
 volatile unsigned long oldtime = 0;
@@ -49,7 +49,7 @@ void map_runing_time() {
   runing_time = map(analogRead(OnTimePin), 0, 1023, 0, 9) * 30;
   if (runing_time != old_rvalue) {
     old_rvalue = runing_time;
-    if (!emergancy) {
+    if (!emergency) {
       lcd.setCursor(4, 1);
       lcd.print("   ");
       lcd.setCursor(4, 1);
@@ -64,7 +64,7 @@ void map_breaking_time() {
   breaking_time = map(analogRead(OffTimePin), 0, 1023, 0, 9) * 5;
   if (breaking_time != old_bvalue ) {
     old_bvalue =  breaking_time;
-    if (!emergancy) {
+    if (!emergency) {
       lcd.setCursor(12, 1);
       lcd.print("   ");
       lcd.setCursor(12, 1);
@@ -139,21 +139,21 @@ void setup() {
   map_breaking_time();
 
   if (runing_time  > 235 and breaking_time > 35) {
-    emergancy = 1;
-    runing_time = 10;
-    breaking_time = 1;
+    emergency = 1;
+    runing_time = 90;
+    breaking_time = 20;
   } else {
-    emergancy = 0;
+    emergency = 0;
   }
 
-  if (emergancy) {
+  if (emergency) {
     digitalWrite(RuningledPin, HIGH );
     digitalWrite(StanbyledPin, HIGH );
     lcd.clear();
 
     lcd.setCursor(0, 0);
 
-    lcd.print(" Emergancy Mode ");
+    lcd.print(" Emergency Mode ");
 
     lcd.setCursor(4, 1);
     lcd.print("   ");
@@ -182,7 +182,7 @@ void setup() {
 }
 
 void TaskB() {
-  if (!emergancy) {
+  if (!emergency) {
     map_runing_time();
     map_breaking_time();
     if (BdistanceCm <= Bu and modeB == 1) {
@@ -197,7 +197,7 @@ void TaskB() {
 
 
 
-  if (modeB == 1 or emergancy == 1 ) {
+  if (modeB == 1 or emergency == 1 ) {
 
     if (oldtime + runing_time * 1000 < millis() and flag == 0) {
       flag = 1;
@@ -233,7 +233,7 @@ void loop() {
 
 
 
-  if (!emergancy) {
+  if (!emergency) {
     gettoptanklevel();
     int Tpresentage = float((TdistanceCm - TankTu) * 100) / float((TankTl - TankTu));
     Serial.println(TdistanceCm);
